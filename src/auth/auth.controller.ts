@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { JwtPayload } from 'src/common/types/JwtPayload.interface';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +19,11 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post('refresh')
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto.refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)
