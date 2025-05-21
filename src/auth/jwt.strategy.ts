@@ -13,6 +13,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ JWT payload:', {
+        ...payload,
+        issued: new Date(payload.iat * 1000).toISOString(),
+        expires: new Date(payload.exp * 1000).toISOString(),
+      });
+    }
     return { userId: payload.sub, email: payload.email };
   }
 }
