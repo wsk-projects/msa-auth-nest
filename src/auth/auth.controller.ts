@@ -4,7 +4,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-import { JwtPayload } from 'src/common/types/JwtPayload.interface';
+import { UserIdentity } from 'src/common/types/user-identity.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
@@ -28,7 +28,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@LoginUser() user: JwtPayload) {
+  getProfile(@LoginUser() user: UserIdentity) {
     return user;
   }
 }
