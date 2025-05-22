@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/user/types/user.entity';
 
 @Injectable()
@@ -12,11 +12,15 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.users.find((user) => user.email === email);
+  async findByEmail(email: string): Promise<User> {
+    const user = this.users.find((user) => user.email === email);
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+    return user;
   }
 
-  async findById(id: number): Promise<User | undefined> {
-    return this.users.find((user) => user.id === id);
+  async findById(id: number): Promise<User> {
+    const user = this.users.find((user) => user.id === id);
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+    return user;
   }
 }

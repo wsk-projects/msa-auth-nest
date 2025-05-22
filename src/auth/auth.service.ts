@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/user/user.service';
+import { attempt } from 'src/libs/exception/conditional-catch.util';
 
 @Injectable()
 export class AuthService {
@@ -19,8 +20,10 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    const user = await this.userService.findByEmail(email);
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    const user = await attempt<User>(() => this.userService.findByEmail(email))
+      .expect(NotFoundException)
+      .thenThrow(new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.'))
+      .elseThrow(new InternalServerErrorException());
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
