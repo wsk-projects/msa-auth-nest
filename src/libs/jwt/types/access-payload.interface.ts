@@ -1,6 +1,5 @@
-export interface AccessPayload {
-  sub: string;
+import { JwtPayload } from './jwt-payload.interface';
+
+export interface AccessPayload extends JwtPayload {
   email: string;
-  iat: number;
-  exp: number;
 }

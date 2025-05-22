@@ -1,16 +1,18 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/user/user.service';
+import { JwtUtil } from 'src/libs/jwt/jwt.util';
 import { attempt } from 'src/libs/exception/conditional-catch.util';
+import { User } from 'src/user/types/user.entity';
+import { AccessPayload } from 'src/libs/jwt/types/access-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly jwtUtil: JwtUtil,
   ) {}
 
   async signup(email: string, password: string) {
@@ -26,39 +28,25 @@ export class AuthService {
       .elseThrow(new InternalServerErrorException());
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      throw new UnauthorizedException('비밀번호가 일치하지 않습니다');
+    if (!isMatch) throw new UnauthorizedException('비밀번호가 일치하지 않습니다');
 
-    // 액세스
-    const payload = {
-      sub: user.id,
-      email: user.email,
-    };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: this.config.get('JWT_EXPIRES_IN'),
-    });
+    // 액세스 토큰 발급
+    const accessToken = await this.jwtUtil.signJwt({ sub: user.id, email: user.email }, 'access');
 
-    // 리프레시
-    const refreshPayload = {
-      sub: user.id,
-    };
-    const refreshToken = await this.jwtService.signAsync(refreshPayload, {
-      expiresIn: this.config.get('JWT_REFRESH_EXPIRES_IN'),
-    });
+    // 리프레시 토큰 발급
+    const refreshToken = await this.jwtUtil.signJwt({ sub: user.id }, 'refresh');
 
     return { accessToken, refreshToken };
   }
 
   async refresh(refreshToken: string) {
-    const payload = this.jwtService.verify(refreshToken);
+    const payload = await this.jwtUtil.verifyToken(refreshToken);
     const user = await this.userService.findById(payload.sub);
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
-    const newPayload = { sub: user.id, email: user.email };
-    const newAccessToken = await this.jwtService.signAsync(newPayload, {
-      expiresIn: this.config.get('JWT_EXPIRES_IN'),
-    });
+    // 액세스 토큰 발급
+    const accessToken = await this.jwtUtil.signJwt({ sub: user.id, email: user.email }, 'access');
 
-    return { accessToken: newAccessToken };
+    return { accessToken };
   }
 }
