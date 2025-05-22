@@ -15,13 +15,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: AccessPayload): Promise<UserIdentity> {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ JWT payload:', {
-        ...payload,
-        issued: new Date(payload.iat * 1000).toISOString(),
-        expires: new Date(payload.exp * 1000).toISOString(),
-      });
-    }
     return { userId: Number(payload.sub), email: payload.email };
   }
 }

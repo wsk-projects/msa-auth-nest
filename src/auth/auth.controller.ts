@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
 import { LoginUser } from 'src/common/decorators/login-user.decorator';
+import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { UserIdentity } from 'src/common/types/user-identity.interface';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-import { UserIdentity } from 'src/common/types/user-identity.interface';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,17 +18,24 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+  async login(@Body() dto: LoginDto, @Res() res: Response) {
+    const result = await this.authService.login(dto.email, dto.password, res);
+    return res.json(result);
+  }
+
+  @Post('logout')
+  logout(@RefreshToken() refreshToken: string) {
+    return this.authService.logout(refreshToken);
   }
 
   @Post('refresh')
-  refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refresh(dto.refreshToken);
+  async refresh(@RefreshToken() refreshToken: string, @Res() res: Response) {
+    const result = await this.authService.refresh(refreshToken, res);
+    return res.json(result);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @UseGuards(JwtAuthGuard)
   getProfile(@LoginUser() user: UserIdentity) {
     return user;
   }
