@@ -7,7 +7,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('exists')
-  checkEmail(@Query('email') email: string): UserExistsDto {
-    return { exists: this.userService.checkEmailExists(email) };
+  async checkEmail(@Query('email') email: string): Promise<UserExistsDto> {
+    return { exists: await this.userService.checkEmailExists(email) };
   }
 }

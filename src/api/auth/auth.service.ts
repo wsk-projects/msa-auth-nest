@@ -7,11 +7,10 @@ import { attempt } from 'src/utils/assertion/conditional-catch';
 import { TokenProvider } from 'src/api/auth/providers/token.provider';
 import { User } from 'src/api/user/entities/user.entity';
 import { UserService } from 'src/api/user/user.service';
+import prisma from 'src/libs/prisma/prisma-client';
 
 @Injectable()
 export class AuthService {
-  private blacklist: Set<string> = new Set(); // 메모리 블랙리스트
-
   constructor(
     private readonly config: ConfigService,
     private readonly userService: UserService,
@@ -57,18 +56,26 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
     // 리프레시 토큰을 블랙 리스트에 추가
-    this.blacklist.add(refreshToken);
+    await prisma.rt_blacklist.create({
+      data: {
+        token: refreshToken,
+        expiresAt: new Date(payload.exp! * 1000),
+      },
+    });
 
     // 쿠키에서 리프레시 토큰 삭제
     cookieUtil.deleteCookie(res, 'refreshToken');
   }
 
-  isBlacklisted(token: string): boolean {
-    return this.blacklist.has(token);
+  async isBlacklisted(token: string): Promise<boolean> {
+    const blacklistedToken = await prisma.rt_blacklist.findUnique({
+      where: { token },
+    });
+    return blacklistedToken !== null;
   }
 
   async refresh(refreshToken: string, res: Response) {
-    if (this.isBlacklisted(refreshToken)) {
+    if (await this.isBlacklisted(refreshToken)) {
       throw new UnauthorizedException('세션이 만료되었습니다. 다시 로그인해주세요.');
     }
 
