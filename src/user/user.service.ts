@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/user/types/user.entity';
 
 @Injectable()
@@ -7,9 +7,16 @@ export class UserService {
   private idCounter = 1;
 
   async create(email: string, password: string): Promise<User> {
+    this.checkEmailExists(email);
     const user = { id: this.idCounter++, email, password };
     this.users.push(user);
     return user;
+  }
+
+  checkEmailExists(email: string) {
+    if (this.users.find((user) => user.email === email)) {
+      throw new ConflictException('이미 존재하는 이메일입니다.');
+    }
   }
 
   async findByEmail(email: string): Promise<User> {
