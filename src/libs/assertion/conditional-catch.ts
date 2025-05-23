@@ -1,6 +1,6 @@
 type AsyncFn<T> = () => Promise<T>;
 
-class ConditionalCatch<T = unknown> {
+class AttemptBuilder<T = unknown> {
   private fn: AsyncFn<T>;
   private expectedError?: new (...args: any[]) => Error;
   private replacementError?: Error;
@@ -42,5 +42,5 @@ class ConditionalCatch<T = unknown> {
 }
 
 export function attempt<T>(fn: AsyncFn<T>) {
-  return new ConditionalCatch<T>(fn);
+  return new AttemptBuilder<T>(fn);
 }

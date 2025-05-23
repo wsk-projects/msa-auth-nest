@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { cookieUtil } from 'src/libs/cookie/cookie.util';
-import { attempt } from 'src/libs/exception/conditional-catch.util';
+import { attempt } from 'src/libs/assertion/conditional-catch';
 import { User } from 'src/user/types/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Response } from 'express';

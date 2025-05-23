@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { attempt } from '../exception/conditional-catch.util';
+import { attempt } from '../assertion/conditional-catch';
 import { JwtPayload } from './types/jwt-payload.interface';
 
 @Injectable()

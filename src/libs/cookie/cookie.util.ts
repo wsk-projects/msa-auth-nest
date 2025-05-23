@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { expect } from '../assertion/expect-throw';
 
 interface Cookie {
   key: string;
@@ -37,10 +38,7 @@ export const cookieUtil = {
 
   getCookie(req: Request, key: Cookie['key']): string {
     const cookie = (req.cookies as Record<string, string>)[key];
-
-    if (cookie == null) {
-      throw new UnauthorizedException(`[ ${key} ] 쿠키를 찾을 수 없습니다.`);
-    }
+    expect(cookie != null).elseThrow(new UnauthorizedException(`[ ${key} ] 쿠키를 찾을 수 없습니다.`));
 
     return cookie;
   },
