@@ -7,16 +7,17 @@ export class UserService {
   private idCounter = 1;
 
   async create(email: string, password: string): Promise<User> {
-    this.checkEmailExists(email);
+    if (this.checkEmailExists(email)) throw new ConflictException('이미 존재하는 이메일입니다.');
     const user = { id: this.idCounter++, email, password };
     this.users.push(user);
     return user;
   }
 
-  checkEmailExists(email: string) {
+  checkEmailExists(email: string): boolean {
     if (this.users.find((user) => user.email === email)) {
-      throw new ConflictException('이미 존재하는 이메일입니다.');
+      return true;
     }
+    return false;
   }
 
   async findByEmail(email: string): Promise<User> {
