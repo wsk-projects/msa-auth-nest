@@ -56,7 +56,7 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
 
     // 리프레시 토큰을 블랙 리스트에 추가
-    await prisma.rt_blacklist.create({
+    await prisma.refreshTokenBlacklist.create({
       data: {
         token: refreshToken,
         expiresAt: new Date(payload.exp! * 1000),
@@ -68,7 +68,7 @@ export class AuthService {
   }
 
   async isBlacklisted(token: string): Promise<boolean> {
-    const blacklistedToken = await prisma.rt_blacklist.findUnique({
+    const blacklistedToken = await prisma.refreshTokenBlacklist.findUnique({
       where: { token },
     });
     return blacklistedToken !== null;

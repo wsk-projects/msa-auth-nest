@@ -18,13 +18,20 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("user")
 }
 
-model rt_blacklist {
+model RefreshTokenBlacklist {
   id        Int      @id @default(autoincrement())
   token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("rt_blacklist")
   expiresAt DateTime @db.Timestamptz
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
