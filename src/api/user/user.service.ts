@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from 'src/api/user/entities/user.entity';
+import { User } from 'generated/prisma/client';
 import prisma from 'src/libs/prisma/prisma-client';
 
 @Injectable()
@@ -8,9 +8,9 @@ export class UserService {
     if (await this.checkEmailExists(email)) throw new ConflictException('이미 존재하는 이메일입니다.');
 
     const user = { email, password };
-    const createdUser = (await prisma.user.create({
+    const createdUser = await prisma.user.create({
       data: user,
-    })) as User;
+    });
 
     return createdUser;
   }

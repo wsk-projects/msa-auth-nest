@@ -1,12 +1,10 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { TokenProvider } from 'src/api/auth/providers/token.provider';
-import { User } from 'src/api/user/entities/user.entity';
 import { UserService } from 'src/api/user/user.service';
 import prisma from 'src/libs/prisma/prisma-client';
-import { attempt } from 'src/utils/assertion/conditional-catch';
 import { cookieUtil } from 'src/utils/cookie/cookie.util';
 import { LoginHistoryService } from './login-history.service';
 
@@ -16,36 +14,29 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly userService: UserService,
     private readonly loginHistoryService: LoginHistoryService,
-    private readonly jwtProvider: TokenProvider,
+    private readonly tokenProvider: TokenProvider,
   ) {}
 
   async signup(email: string, password: string) {
-    // eslint-disable-next-line
-    const hashedPassword = (await bcrypt.hash(password, 10)) as string;
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.userService.create(email, hashedPassword);
     return { id: user.id, email: user.email };
   }
 
   async login(email: string, password: string, req: Request, res: Response) {
-    const user = await attempt<User>(() => this.userService.findByEmail(email))
-      .expect(NotFoundException)
-      .thenThrow(new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.'))
-      .elseThrow(new InternalServerErrorException());
+    const user = await this.userService.findByEmail(email);
+    if (!user) throw new UnauthorizedException();
 
-    // eslint-disable-next-line
-    const isMatch = (await bcrypt.compare(password, user.password)) as boolean;
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       await this.loginHistoryService.createFailure(req, user.id);
-      throw new UnauthorizedException('비밀번호가 일치하지 않습니다');
+      throw new UnauthorizedException();
     }
-
     await this.loginHistoryService.createSuccess(req, user.id);
 
-    // 액세스 토큰 발급
-    const accessToken = await this.jwtProvider.generateAccessToken({ sub: user.id, email: user.email });
-
-    // 리프레시 토큰 발급
-    const refreshToken = await this.jwtProvider.generateRefreshToken({ sub: user.id });
+    // 액세스 & 리프레시 토큰 발급
+    const accessToken = await this.tokenProvider.generateAccessToken({ sub: user.id, email: user.email });
+    const refreshToken = await this.tokenProvider.generateRefreshToken({ sub: user.id });
 
     // 리프레시 토큰을 쿠키에 저장
     cookieUtil.setCookie(
@@ -58,44 +49,39 @@ export class AuthService {
   }
 
   async logout(refreshToken: string, res: Response) {
-    const payload = await this.jwtProvider.verify(refreshToken);
-    const user = await this.userService.findById(payload.sub);
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    // 쿠키에서 리프레시 토큰 삭제
+    cookieUtil.deleteCookie(res, 'refreshToken');
 
-    // 리프레시 토큰을 블랙 리스트에 추가
+    const payload = await this.tokenProvider.verify(refreshToken);
     await prisma.refreshTokenBlacklist.create({
       data: {
         token: refreshToken,
         expiresAt: new Date(payload.exp! * 1000),
       },
     });
-
-    // 쿠키에서 리프레시 토큰 삭제
-    cookieUtil.deleteCookie(res, 'refreshToken');
   }
 
   async isBlacklisted(token: string): Promise<boolean> {
     const blacklistedToken = await prisma.refreshTokenBlacklist.findUnique({
       where: { token },
     });
-    return blacklistedToken !== null;
+    return !!blacklistedToken;
   }
 
   async refresh(refreshToken: string, res: Response) {
     if (await this.isBlacklisted(refreshToken)) {
-      throw new UnauthorizedException('세션이 만료되었습니다. 다시 로그인해주세요.');
+      throw new UnauthorizedException();
     }
 
-    const payload = await this.jwtProvider.verify(refreshToken);
+    const payload = await this.tokenProvider.verify(refreshToken);
     const user = await this.userService.findById(payload.sub);
-    if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+    if (!user) throw new UnauthorizedException();
 
-    // 액세스 토큰 발급
-    const accessToken = await this.jwtProvider.generateAccessToken({ sub: user.id, email: user.email });
+    // 액세스 토큰 발급 & 리프레시 토큰 갱신
+    const accessToken = await this.tokenProvider.generateAccessToken({ sub: user.id, email: user.email });
 
-    // 리프레시 토큰 갱신
-    const newRefreshToken = this.jwtProvider.shouldRefreshToken(refreshToken)
-      ? await this.jwtProvider.generateRefreshToken({ sub: user.id })
+    const newRefreshToken = this.tokenProvider.shouldRefreshToken(refreshToken)
+      ? await this.tokenProvider.generateRefreshToken({ sub: user.id })
       : refreshToken;
 
     cookieUtil.setCookie(
