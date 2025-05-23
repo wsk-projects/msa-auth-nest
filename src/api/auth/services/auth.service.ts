@@ -1,19 +1,21 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { Response } from 'express';
-import { cookieUtil } from 'src/utils/cookie/cookie.util';
-import { attempt } from 'src/utils/assertion/conditional-catch';
+import { Request, Response } from 'express';
 import { TokenProvider } from 'src/api/auth/providers/token.provider';
 import { User } from 'src/api/user/entities/user.entity';
 import { UserService } from 'src/api/user/user.service';
 import prisma from 'src/libs/prisma/prisma-client';
+import { attempt } from 'src/utils/assertion/conditional-catch';
+import { cookieUtil } from 'src/utils/cookie/cookie.util';
+import { LoginHistoryService } from './login-history.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly config: ConfigService,
     private readonly userService: UserService,
+    private readonly loginHistoryService: LoginHistoryService,
     private readonly jwtProvider: TokenProvider,
   ) {}
 
@@ -24,7 +26,7 @@ export class AuthService {
     return { id: user.id, email: user.email };
   }
 
-  async login(email: string, password: string, res: Response) {
+  async login(email: string, password: string, req: Request, res: Response) {
     const user = await attempt<User>(() => this.userService.findByEmail(email))
       .expect(NotFoundException)
       .thenThrow(new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.'))
@@ -32,7 +34,12 @@ export class AuthService {
 
     // eslint-disable-next-line
     const isMatch = (await bcrypt.compare(password, user.password)) as boolean;
-    if (!isMatch) throw new UnauthorizedException('비밀번호가 일치하지 않습니다');
+    if (!isMatch) {
+      await this.loginHistoryService.createFailure(req, user.id);
+      throw new UnauthorizedException('비밀번호가 일치하지 않습니다');
+    }
+
+    await this.loginHistoryService.createSuccess(req, user.id);
 
     // 액세스 토큰 발급
     const accessToken = await this.jwtProvider.generateAccessToken({ sub: user.id, email: user.email });

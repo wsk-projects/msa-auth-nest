@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginUser } from 'src/common/decorators/login-user.decorator';
 import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UserIdentityDto } from 'src/api/user/dto/response/user-identity.dto';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth.service';
 import { LoginDto } from './dto/request/login.dto';
 import { SignupDto } from './dto/request/signup.dto';
 
@@ -44,8 +44,8 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @Post('login')
-  async login(@Body() dto: LoginDto, @Res() res: Response) {
-    const result = await this.authService.login(dto.email, dto.password, res);
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
+    const result = await this.authService.login(dto.email, dto.password, req, res);
     return res.json(result);
   }
 

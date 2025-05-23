@@ -32,7 +32,22 @@ model RefreshTokenBlacklist {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   @@map("rt_blacklist")
-  expiresAt DateTime @db.Timestamptz
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILED
+
+  @@map("enum_login_status")
+}
+
+model LoginHistory {
+  id        Int         @id @default(autoincrement())
+  userId    Int         @map("user_id")
+  ip        String?
+  userAgent String?     @map("user_agent")
+  status    LoginStatus
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("login_history")
 }

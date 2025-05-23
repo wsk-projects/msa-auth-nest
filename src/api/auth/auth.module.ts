@@ -3,9 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './providers/jwt.strategy';
 import { TokenProvider } from './providers/token.provider';
+import { LoginHistoryService } from './services/login-history.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { TokenProvider } from './providers/token.provider';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, TokenProvider, JwtStrategy],
+  providers: [JwtStrategy, TokenProvider, AuthService, LoginHistoryService],
 })
 export class AuthModule {}
