@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
-import { cookieUtil } from 'src/libs/cookie/cookie.util';
+import { cookieUtil } from 'src/utils/cookie/cookie.util';
 
 export const RefreshToken = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
   const request = ctx.switchToHttp().getRequest<Request>();

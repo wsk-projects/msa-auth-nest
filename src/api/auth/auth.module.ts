@@ -20,6 +20,6 @@ import { TokenProvider } from './providers/token.provider';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TokenProvider],
+  providers: [AuthService, TokenProvider, JwtStrategy],
 })
 export class AuthModule {}

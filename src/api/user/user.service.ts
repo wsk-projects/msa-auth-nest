@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from 'src/user/types/user.entity';
+import { User } from 'src/api/user/entities/user.entity';
 
 @Injectable()
 export class UserService {

@@ -2,11 +2,11 @@ import { Injectable, InternalServerErrorException, NotFoundException, Unauthoriz
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { cookieUtil } from 'src/libs/cookie/cookie.util';
-import { attempt } from 'src/libs/assertion/conditional-catch';
-import { TokenProvider } from 'src/auth/providers/token.provider';
-import { User } from 'src/user/types/user.entity';
-import { UserService } from 'src/user/user.service';
+import { cookieUtil } from 'src/utils/cookie/cookie.util';
+import { attempt } from 'src/utils/assertion/conditional-catch';
+import { TokenProvider } from 'src/api/auth/providers/token.provider';
+import { User } from 'src/api/user/entities/user.entity';
+import { UserService } from 'src/api/user/user.service';
 
 @Injectable()
 export class AuthService {

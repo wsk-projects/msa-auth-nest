@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AccessPayload } from 'src/libs/jwt/types/access-payload.interface';
-import { RefreshPayload } from 'src/libs/jwt/types/refresh-payload.interface';
-import { JwtPayload } from 'src/libs/jwt/types/jwt-payload.interface';
+import { AccessPayload } from 'src/types/jwt/access-payload.interface';
+import { RefreshPayload } from 'src/types/jwt/refresh-payload.interface';
+import { JwtPayload } from 'src/types/jwt/jwt-payload.interface';
 
 @Injectable()
 export class TokenProvider {

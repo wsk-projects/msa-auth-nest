@@ -4,10 +4,10 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { LoginUser } from 'src/common/decorators/login-user.decorator';
 import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { UserIdentity } from 'src/common/types/user-identity.interface';
+import { UserIdentityDto } from 'src/api/user/dto/response/user-identity.dto';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { SignupDto } from './dto/signup.dto';
+import { LoginDto } from './dto/request/login.dto';
+import { SignupDto } from './dto/request/signup.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -88,7 +88,7 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@LoginUser() user: UserIdentity) {
+  getProfile(@LoginUser() user: UserIdentityDto) {
     return user;
   }
 }
