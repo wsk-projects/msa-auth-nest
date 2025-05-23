@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AccessPayload } from './types/access-payload.interface';
-import { RefreshPayload } from './types/refresh-payload.interface';
-import { JwtPayload } from './types/jwt-payload.interface';
+import { AccessPayload } from 'src/libs/jwt/types/access-payload.interface';
+import { RefreshPayload } from 'src/libs/jwt/types/refresh-payload.interface';
+import { JwtPayload } from 'src/libs/jwt/types/jwt-payload.interface';
 
 @Injectable()
 export class TokenProvider {
@@ -16,25 +16,39 @@ export class TokenProvider {
    * 액세스 토큰 발급
    */
   async generateAccessToken(payload: AccessPayload): Promise<string> {
-    return this.jwtService.signAsync(
+    const token = await this.jwtService.signAsync(
       {
-        sub: String(payload.sub),
+        sub: payload.sub,
         email: payload.email,
       },
       { expiresIn: this.config.get<number>('JWT_EXPIRES_IN')! },
     );
+
+    if (process.env.NODE_ENV === 'development') {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+      console.log(`✅ AT Payload: { sub: ${payload.sub}, expires: ${new Date(payload.exp! * 1000).toISOString()}}`);
+    }
+
+    return token;
   }
 
   /**
    * 리프레시 토큰 발급
    */
   async generateRefreshToken(payload: RefreshPayload): Promise<string> {
-    return this.jwtService.signAsync(
+    const token = await this.jwtService.signAsync(
       {
         sub: payload.sub,
       },
       { expiresIn: this.config.get<number>('JWT_REFRESH_EXPIRES_IN')! },
     );
+
+    if (process.env.NODE_ENV === 'development') {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+      console.log(`✅ RT Payload: { sub: ${payload.sub}, expires: ${new Date(payload.exp! * 1000).toISOString()}}`);
+    }
+
+    return token;
   }
 
   /**
