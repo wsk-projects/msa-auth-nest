@@ -52,8 +52,9 @@ export class AuthController {
   @ApiOperation({ summary: '로그아웃' })
   @ApiResponse({ status: 200, description: '로그아웃 성공' })
   @Post('logout')
-  logout(@RefreshToken() refreshToken: string) {
-    return this.authService.logout(refreshToken);
+  async logout(@RefreshToken() refreshToken: string, @Res() res: Response) {
+    await this.authService.logout(refreshToken, res);
+    return res.json();
   }
 
   @ApiOperation({ summary: '토큰 갱신' })

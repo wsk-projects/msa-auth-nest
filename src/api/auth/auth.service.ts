@@ -51,7 +51,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async logout(refreshToken: string) {
+  async logout(refreshToken: string, res: Response) {
     const payload = await this.jwtProvider.verify(refreshToken);
     const user = await this.userService.findById(payload.sub);
     if (!user) throw new UnauthorizedException('사용자를 찾을 수 없습니다');
@@ -59,7 +59,8 @@ export class AuthService {
     // 리프레시 토큰을 블랙 리스트에 추가
     this.blacklist.add(refreshToken);
 
-    return { message: '로그아웃 성공' };
+    // 쿠키에서 리프레시 토큰 삭제
+    cookieUtil.deleteCookie(res, 'refreshToken');
   }
 
   isBlacklisted(token: string): boolean {

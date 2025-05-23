@@ -15,24 +15,18 @@ interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none';
 }
 
+const secureCookieOptoins = {
+  path: '/',
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+};
+
 export const cookieUtil = {
-  setCookie(
-    res: Response,
-    { key, value }: Cookie,
-    {
-      maxAge,
-      path = '/',
-      httpOnly = true,
-      secure = process.env.NODE_ENV === 'production',
-      sameSite = 'strict',
-    }: CookieOptions,
-  ): void {
+  setCookie(res: Response, { key, value }: Cookie, cookieOptions: CookieOptions): void {
     res.cookie(key, value, {
-      maxAge,
-      path,
-      httpOnly,
-      secure,
-      sameSite,
+      ...secureCookieOptoins,
+      ...cookieOptions,
     });
   },
 
