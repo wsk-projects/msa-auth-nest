@@ -1,4 +1,4 @@
-import { LoginStatus } from '@generated/prisma';
+import { LoginStatus } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import prisma from 'src/libs/prisma/prisma-client';
