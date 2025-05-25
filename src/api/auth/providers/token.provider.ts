@@ -12,9 +12,6 @@ export class TokenProvider {
     private readonly jwtService: JwtService,
   ) {}
 
-  /**
-   * 액세스 토큰 발급
-   */
   async generateAccessToken(payload: AccessPayload): Promise<string> {
     const token = await this.jwtService.signAsync(
       {
@@ -32,9 +29,6 @@ export class TokenProvider {
     return token;
   }
 
-  /**
-   * 리프레시 토큰 발급
-   */
   async generateRefreshToken(payload: RefreshPayload): Promise<string> {
     const token = await this.jwtService.signAsync(
       {
@@ -51,9 +45,6 @@ export class TokenProvider {
     return token;
   }
 
-  /**
-   * 리프레시 토큰 갱신
-   */
   async updateRefreshToken(token: string): Promise<string> {
     if (this.shouldRefreshToken(token)) {
       const payload = this.jwtService.verify<RefreshPayload>(token);
@@ -62,9 +53,6 @@ export class TokenProvider {
     return token;
   }
 
-  /**
-   * 리프레시 토큰 갱신 필요 여부 확인
-   */
   shouldRefreshToken(token: string): boolean {
     try {
       const decoded = this.jwtService.verify<RefreshPayload>(token);
@@ -84,9 +72,6 @@ export class TokenProvider {
     }
   }
 
-  /**
-   * 토큰 검증
-   */
   async verify(token: string): Promise<JwtPayload> {
     return this.jwtService.verifyAsync<JwtPayload>(token);
   }
