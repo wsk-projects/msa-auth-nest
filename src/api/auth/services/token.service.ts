@@ -1,30 +1,27 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { AccessPayload } from 'src/types/jwt/access-payload.interface';
-import { TokenProvider } from '../providers/token.provider';
-import { RefreshPayload } from 'src/types/jwt/refresh-payload.interface';
+import { AccessPayload } from 'src/utils/jwt/types/access-payload.interface';
+import { RefreshPayload } from 'src/utils/jwt/types/refresh-payload.interface';
+import { jwtUtil } from 'src/utils/jwt/jwt.util';
 
 @Injectable()
 export class TokenService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly tokenProvider: TokenProvider,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async generateToken(payload: AccessPayload) {
-    const accessToken = await this.tokenProvider.generateAccessToken(payload);
+  generateToken(payload: AccessPayload) {
+    const accessToken = jwtUtil.generateAccessToken(payload);
     return accessToken;
   }
 
-  async generateRefreshToken(payload: RefreshPayload) {
-    const refreshToken = await this.tokenProvider.generateRefreshToken(payload);
+  generateRefreshToken(payload: RefreshPayload) {
+    const refreshToken = jwtUtil.generateRefreshToken(payload);
     return refreshToken;
   }
 
-  async updateRefreshToken(refreshToken: string) {
-    if (this.tokenProvider.shouldRefreshToken(refreshToken)) {
-      const payload = await this.tokenProvider.verify(refreshToken);
-      const newRefreshToken = await this.tokenProvider.generateRefreshToken(payload);
+  updateRefreshToken(refreshToken: string) {
+    if (jwtUtil.shouldRefreshToken(refreshToken)) {
+      const payload = jwtUtil.verify(refreshToken);
+      const newRefreshToken = jwtUtil.generateRefreshToken(payload);
       return newRefreshToken;
     }
     return refreshToken;
@@ -32,11 +29,11 @@ export class TokenService {
 
   async verify(token: string) {
     if (await this.isBlacklisted(token)) throw new UnauthorizedException();
-    return await this.tokenProvider.verify(token);
+    return jwtUtil.verify(token);
   }
 
   async blacklistToken(token: string) {
-    const payload = await this.tokenProvider.verify(token);
+    const payload = jwtUtil.verify(token);
     await this.prisma.client.refreshTokenBlacklist.create({
       data: {
         token,

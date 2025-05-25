@@ -1,19 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { expect } from '../assertion/expect-throw';
-
-interface Cookie {
-  key: string;
-  value: string;
-}
-
-interface CookieOptions {
-  maxAge: number;
-  path?: string;
-  httpOnly?: boolean;
-  secure?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
-}
+import { Cookie } from './types/cookie.interface';
 
 const secureCookieOptoins = {
   path: '/',
