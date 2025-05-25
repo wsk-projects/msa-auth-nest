@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,29 +9,35 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  UserAuth UserAuth?
 
   @@map("user")
+}
+
+model UserAuth {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@map("user_auth")
 }
 
 model RefreshTokenBlacklist {
   id        Int      @id @default(autoincrement())
   token     String   @unique
-  expiresAt DateTime @map("expires_at") @db.Timestamptz
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("rt_blacklist")
-}
-
-enum LoginStatus {
-  SUCCESS
-  FAILED
-
-  @@map("enum_login_status")
 }
 
 model LoginHistory {
@@ -46,7 +46,14 @@ model LoginHistory {
   ip        String?
   userAgent String?     @map("user_agent")
   status    LoginStatus
-  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("login_history")
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILED
+
+  @@map("enum_login_status")
 }
