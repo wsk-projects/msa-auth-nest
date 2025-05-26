@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { UserAuthRepository } from '../../../db/repositories/user-auth.repository';
-import { SignupTransaction } from '../../../db/transactions/signup.transaction';
+import { UserAuthRepository } from '../../../../db/repositories/user-auth.repository';
+import { SignupTransaction } from '../../../../db/transactions/signup.transaction';
 
 @Injectable()
 export class SignupService {

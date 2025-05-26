@@ -13,6 +13,7 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   UserAuth     UserAuth?
+  UserOAuth    UserOAuth[]
   LoginHistory LoginHistory[]
 
   @@map("user")
@@ -31,27 +32,58 @@ model UserAuth {
   @@map("user_auth")
 }
 
+model UserOAuth {
+  id         Int           @id @default(autoincrement())
+  userId     Int           @map("user_id")
+  provider   OAuthProvider
+  providerId String        @unique @map("provider_id")
+  email      String        @map("provider_email")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerId])
+  @@map("user_oauth")
+}
+
+enum OAuthProvider {
+  GOOGLE
+  KAKAO
+
+  @@map("enum_oauth_provider")
+}
+
 model RefreshTokenBlacklist {
   id        Int      @id @default(autoincrement())
   token     String   @unique
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("rt_blacklist")
 }
 
 model LoginHistory {
-  id        Int         @id @default(autoincrement())
-  userId    Int         @map("user_id")
+  id        Int           @id @default(autoincrement())
+  userId    Int           @map("user_id")
+  provider  LoginProvider
   ip        String?
-  userAgent String?     @map("user_agent")
+  userAgent String?       @map("user_agent")
   status    LoginStatus
-  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 
   User User @relation(fields: [userId], references: [id])
 
   @@map("login_history")
+}
+
+enum LoginProvider {
+  LOCAL
+  GOOGLE
+  KAKAO
+
+  @@map("enum_login_provider")
 }
 
 enum LoginStatus {

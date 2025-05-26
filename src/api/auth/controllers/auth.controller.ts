@@ -5,12 +5,12 @@ import { LoginUser } from 'src/common/decorators/login-user.decorator';
 import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UserIdentityDto } from 'src/api/user/dto/response/user-identity.dto';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/request/login.dto';
-import { SignupDto } from './dto/request/signup.dto';
-import { CheckEmailDto } from './dto/request/check-email.dto';
+import { AuthService } from '../services/auth.service';
+import { LoginDto } from '../dto/request/login.dto';
+import { SignupDto } from '../dto/request/signup.dto';
+import { CheckEmailDto } from '../dto/request/check-email.dto';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

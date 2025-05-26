@@ -2,9 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { cookieUtil } from 'src/utils/cookie/cookie.util';
-import { LoginService } from './services/login.service';
-import { SignupService } from './services/signup.service';
-import { TokenService } from './services/token.service';
+import { LoginService } from './usecases/login.service';
+import { SignupService } from './usecases/signup.service';
+import { TokenService } from './domain/token.service';
 
 @Injectable()
 export class AuthService {
