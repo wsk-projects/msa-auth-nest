@@ -11,19 +11,19 @@ import { SignupRequest } from './request/signup.request';
 export class SignupController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: '회원가입' })
-  @ApiResponse({ status: 200 })
-  @Post('signup')
-  async signup(@Body() dto: SignupRequest): Promise<ApiResult<void>> {
-    await this.authService.signup(dto.email, dto.password);
-    return responseUtil.success();
-  }
-
   @ApiOperation({ summary: '이메일 중복 확인' })
   @ApiResponse({ status: 200 })
   @Get('exists')
   async checkEmail(@Query() dto: CheckEmailRequest): Promise<ApiResult<{ exists: boolean }>> {
     const exists = await this.authService.checkEmailExists(dto.email);
     return responseUtil.success(exists);
+  }
+
+  @ApiOperation({ summary: '회원가입' })
+  @ApiResponse({ status: 200 })
+  @Post('signup')
+  async signup(@Body() dto: SignupRequest): Promise<ApiResult<void>> {
+    await this.authService.signup(dto.email, dto.password);
+    return responseUtil.success();
   }
 }

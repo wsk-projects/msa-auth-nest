@@ -25,7 +25,7 @@ export class OAuthController {
   async googleCallback(
     @Query('code') code: string,
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResult<Token>> {
     const accessToken = await this.oauthService.handleGoogleLogin(code, req, res);
     return responseUtil.success(accessToken);

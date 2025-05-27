@@ -10,6 +10,7 @@ import { SignupController } from './controllers/signup.controller';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/domain/token.service';
 import { OAuthService } from './services/oauth.service';
+import { GoogleLoginService } from './services/usecases/google-login.service';
 import { LoginService } from './services/usecases/login.service';
 import { SignupService } from './services/usecases/signup.service';
 
@@ -25,6 +26,15 @@ import { SignupService } from './services/usecases/signup.service';
     UserModule,
   ],
   controllers: [AuthController, OAuthController, SignupController],
-  providers: [JwtStrategy, PrismaService, AuthService, TokenService, SignupService, LoginService, OAuthService],
+  providers: [
+    JwtStrategy,
+    PrismaService,
+    AuthService,
+    TokenService,
+    SignupService,
+    LoginService,
+    OAuthService,
+    GoogleLoginService,
+  ],
 })
 export class AuthModule {}

@@ -1,16 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UserAuth } from '@prisma/client';
 import { UserAuthRepository } from '../../../../db/repositories/user-auth.repository';
 import { SignupTransaction } from '../../../../db/transactions/signup.transaction';
+import { UserOAuthRepository } from 'src/db/repositories/user-oauth.repository';
 
 @Injectable()
 export class SignupService {
   constructor(
     private readonly userAuthRepository: UserAuthRepository,
+    private readonly userOAuthRepository: UserOAuthRepository,
     private readonly tx: SignupTransaction,
   ) {}
 
+  async checkEmailExists(email: string): Promise<{ exists: boolean }> {
+    const userAuth = await this.userAuthRepository.findByEmail(email);
+    if (userAuth) return { exists: true };
+    const userOAuth = await this.userOAuthRepository.findByEmail(email);
+    if (userOAuth) return { exists: true };
+    return { exists: false };
+  }
+
   async signup(email: string, password: string): Promise<void> {
+    if (await this.userOAuthRepository.findByEmail(email)) {
+      throw new ConflictException();
+    }
     await this.tx.signup(email, password);
   }
 

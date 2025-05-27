@@ -18,25 +18,25 @@ export class LoginService {
     if (!dbUserAuth) throw new UnauthorizedException();
 
     const isMatch = await bcrypt.compare(password, dbUserAuth.password);
-    if (!isMatch) await this.createFailureHistory(dbUserAuth.userId, req);
+    if (!isMatch) await this.createFailureHistory(dbUserAuth.userId, LoginProvider.LOCAL, req);
 
-    await this.createSuccessHistory(dbUserAuth.userId, req);
+    await this.createSuccessHistory(dbUserAuth.userId, LoginProvider.LOCAL, req);
     return dbUserAuth;
   }
 
-  async createSuccessHistory(userId: number, req: Request): Promise<void> {
+  async createSuccessHistory(userId: number, provider: LoginProvider, req: Request): Promise<void> {
     await this.loginHistoryRepository.createSuccess(userId, {
       ip: requestUtil.getIp(req),
       userAgent: requestUtil.getUserAgent(req),
-      provider: LoginProvider.LOCAL,
+      provider,
     });
   }
 
-  async createFailureHistory(userId: number, req: Request): Promise<void> {
+  async createFailureHistory(userId: number, provider: LoginProvider, req: Request): Promise<void> {
     await this.loginHistoryRepository.createFailure(userId, {
       ip: requestUtil.getIp(req),
       userAgent: requestUtil.getUserAgent(req),
-      provider: LoginProvider.LOCAL,
+      provider,
     });
   }
 

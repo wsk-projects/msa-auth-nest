@@ -17,13 +17,12 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async signup(email: string, password: string): Promise<void> {
-    await this.userAuthService.signup(email, password);
+  async checkEmailExists(email: string): Promise<{ exists: boolean }> {
+    return this.userAuthService.checkEmailExists(email);
   }
 
-  async checkEmailExists(email: string): Promise<{ exists: boolean }> {
-    const dbUserAuth = await this.userAuthService.findByEmail(email);
-    return { exists: !!dbUserAuth };
+  async signup(email: string, password: string): Promise<void> {
+    await this.userAuthService.signup(email, password);
   }
 
   async login(email: string, password: string, req: Request, res: Response): Promise<Token> {
