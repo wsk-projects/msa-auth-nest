@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserAuth } from '@prisma/client';
 import { UserAuthRepository } from '../../../../db/repositories/user-auth.repository';
 import { SignupTransaction } from '../../../../db/transactions/signup.transaction';
 
@@ -9,15 +10,15 @@ export class SignupService {
     private readonly tx: SignupTransaction,
   ) {}
 
-  async signup(email: string, password: string) {
-    return this.tx.signup(email, password);
+  async signup(email: string, password: string): Promise<void> {
+    await this.tx.signup(email, password);
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<UserAuth | null> {
     return this.userAuthRepository.findById(id);
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<UserAuth | null> {
     return this.userAuthRepository.findByEmail(email);
   }
 }

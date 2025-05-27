@@ -10,12 +10,12 @@ class AttemptBuilder<T = unknown> {
     this.fn = fn;
   }
 
-  expect(errorType: new (...args: any[]) => Error) {
+  expect(errorType: new (...args: any[]) => Error): this {
     this.expectedError = errorType;
     return this;
   }
 
-  thenThrow(replacementError: Error) {
+  thenThrow(replacementError: Error): this {
     this.replacementError = replacementError;
     return this;
   }
@@ -41,6 +41,6 @@ class AttemptBuilder<T = unknown> {
   }
 }
 
-export function attempt<T>(fn: AsyncFn<T>) {
+export function attempt<T>(fn: AsyncFn<T>): AttemptBuilder<T> {
   return new AttemptBuilder<T>(fn);
 }

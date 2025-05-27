@@ -30,6 +30,7 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'warn', // 처리되지 않은 Promise 경고
       '@typescript-eslint/no-unsafe-argument': 'warn', // 안전하지 않은 파라미터 사용 경고
       '@typescript-eslint/no-empty-object-type': 'off', // 빈 객체 타입 허용
+      '@typescript-eslint/explicit-function-return-type': 'error', // 모든 함수에 반환 타입 명시 필수
       'prettier/prettier': ['error', { printWidth: 120 }], // 한 줄 최대 길이 120자
       'linebreak-style': 'off', // 줄바꿈 스타일 검사 비활성화(CRLF & LF)
     },

@@ -1,10 +1,10 @@
 import { Request } from 'express';
 
 export const requestUtil = {
-  getIp: (req: Request) => {
-    return req.ip?.replace('::ffff:', '');
+  getIp: (req: Request): string => {
+    return req.ip?.replace('::ffff:', '') ?? '';
   },
-  getUserAgent: (req: Request) => {
-    return req.headers['user-agent'];
+  getUserAgent: (req: Request): string => {
+    return req.headers['user-agent'] ?? '';
   },
 };

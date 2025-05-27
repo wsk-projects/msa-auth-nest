@@ -1,7 +1,7 @@
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SignupDto {
+export class SignupRequest {
   @ApiProperty({
     example: 'user@example.com',
     description: '사용자 이메일 (최대 50자)',

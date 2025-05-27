@@ -1,10 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
-import { UserIdentityDto } from '../../api/user/dto/response/user-identity.dto';
+import { UserIdentity } from '../types/user-identity.interface';
 
 interface RequestAfterJwtGuard extends Request {
-  user: UserIdentityDto;
+  user: UserIdentity;
 }
 
 @Injectable()

@@ -1,65 +1,54 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LoginHistory } from '@prisma/client';
 import { Request, Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginUser } from 'src/common/decorators/login-user.decorator';
 import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { UserIdentityDto } from 'src/api/user/dto/response/user-identity.dto';
+import { Token } from 'src/common/types/token.interface';
+import { UserIdentity } from 'src/common/types/user-identity.interface';
+import { responseUtil } from 'src/utils/response/response.util';
+import { ApiResult } from 'src/utils/response/types/api-result.interface';
 import { AuthService } from '../services/auth.service';
-import { LoginDto } from '../dto/request/login.dto';
-import { SignupDto } from '../dto/request/signup.dto';
-import { CheckEmailDto } from '../dto/request/check-email.dto';
+import { LoginRequest } from './request/login.request';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: '회원가입' })
-  @ApiResponse({ status: 200 })
-  @Post('signup')
-  signup(@Body() dto: SignupDto) {
-    return this.authService.signup(dto.email, dto.password);
-  }
-
-  @ApiOperation({ summary: '이메일 중복 확인' })
-  @ApiResponse({ status: 200 })
-  @Get('exists')
-  checkEmail(@Query() dto: CheckEmailDto) {
-    return this.authService.checkEmailExists(dto.email);
-  }
-
   @ApiOperation({ summary: '로그인' })
   @ApiResponse({ status: 200 })
   @Post('login')
-  async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
-    const result = await this.authService.login(dto.email, dto.password, req, res);
-    return res.json(result);
+  async login(
+    @Body() dto: LoginRequest,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResult<Token>> {
+    const accessToken = await this.authService.login(dto.email, dto.password, req, res);
+    return responseUtil.success(accessToken);
   }
 
   @ApiOperation({ summary: '로그아웃' })
   @ApiResponse({ status: 200 })
   @Post('logout')
-  async logout(@RefreshToken() refreshToken: string, @Res() res: Response) {
+  async logout(
+    @RefreshToken() refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResult<void>> {
     await this.authService.logout(refreshToken, res);
-    return res.json();
+    return responseUtil.success();
   }
 
   @ApiOperation({ summary: '토큰 갱신' })
   @ApiResponse({ status: 200 })
   @Post('refresh')
-  async refresh(@RefreshToken() refreshToken: string, @Res() res: Response) {
-    const result = await this.authService.refresh(refreshToken, res);
-    return res.json(result);
-  }
-
-  @ApiOperation({ summary: '프로필 조회' })
-  @ApiResponse({ status: 200 })
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@LoginUser() loginUser: UserIdentityDto) {
-    return loginUser;
+  async refresh(
+    @RefreshToken() refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResult<Token>> {
+    const accessToken = await this.authService.refresh(refreshToken, res);
+    return responseUtil.success(accessToken);
   }
 
   @ApiOperation({ summary: '로그인 기록 조회' })
@@ -67,7 +56,8 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('login-history')
-  getLoginHistory(@LoginUser() loginUser: UserIdentityDto) {
-    return this.authService.getLoginHistory(loginUser.userId);
+  async getLoginHistory(@LoginUser() loginUser: UserIdentity): Promise<ApiResult<LoginHistory[]>> {
+    const loginHistories = await this.authService.getLoginHistory(loginUser.userId);
+    return responseUtil.success(loginHistories);
   }
 }

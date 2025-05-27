@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { LoginStatus, Prisma } from '@prisma/client';
+import { LoginHistory, LoginStatus, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 
 @Injectable()
 export class LoginHistoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createSuccess(userId: number, data: Pick<Prisma.LoginHistoryCreateInput, 'ip' | 'userAgent' | 'provider'>) {
+  async createSuccess(
+    userId: number,
+    data: Pick<Prisma.LoginHistoryCreateInput, 'ip' | 'userAgent' | 'provider'>,
+  ): Promise<LoginHistory> {
     return await this.prisma.client.loginHistory.create({
       data: {
         ...data,
@@ -16,7 +19,10 @@ export class LoginHistoryRepository {
     });
   }
 
-  async createFailure(userId: number, data: Pick<Prisma.LoginHistoryCreateInput, 'ip' | 'userAgent' | 'provider'>) {
+  async createFailure(
+    userId: number,
+    data: Pick<Prisma.LoginHistoryCreateInput, 'ip' | 'userAgent' | 'provider'>,
+  ): Promise<LoginHistory> {
     return await this.prisma.client.loginHistory.create({
       data: {
         ...data,
@@ -26,22 +32,21 @@ export class LoginHistoryRepository {
     });
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<LoginHistory | null> {
     return await this.findBy({ id });
   }
 
-  async findManyByUserId(userId: number) {
+  async findManyByUserId(userId: number): Promise<LoginHistory[]> {
     return await this.findManyBy({ userId });
   }
 
-  private async findBy(where: Prisma.LoginHistoryWhereUniqueInput) {
-    const loginHistory = await this.prisma.client.loginHistory.findUnique({
+  private async findBy(where: Prisma.LoginHistoryWhereUniqueInput): Promise<LoginHistory | null> {
+    return await this.prisma.client.loginHistory.findUnique({
       where,
     });
-    return loginHistory ? loginHistory : null;
   }
 
-  private async findManyBy(where: Prisma.LoginHistoryWhereInput) {
+  private async findManyBy(where: Prisma.LoginHistoryWhereInput): Promise<LoginHistory[]> {
     return await this.prisma.client.loginHistory.findMany({
       where,
       orderBy: { id: 'desc' },

@@ -1,11 +1,13 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoginProvider } from '@prisma/client';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { Token } from 'src/common/types/token.interface';
 import { LoginHistoryRepository } from 'src/db/repositories/login-history.repository';
 import { UserAuthRepository } from 'src/db/repositories/user-auth.repository';
 import { UserOAuthRepository } from 'src/db/repositories/user-oauth.repository';
 import { OAuthTransaction } from 'src/db/transactions/oauth.transaction';
+import { cookieUtil } from 'src/utils/cookie/cookie.util';
 import { requestUtil } from 'src/utils/request/request.util';
 import { GoogleUserInfo } from '../types/google-user-info.interface';
 import { TokenService } from './domain/token.service';
@@ -25,7 +27,7 @@ export class OAuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  getGoogleLoginUrl() {
+  getGoogleLoginUrl(): { url: string } {
     const options = {
       redirect_uri: this.config.get('GOOGLE_REDIRECT_URI') as string,
       client_id: this.config.get('GOOGLE_CLIENT_ID') as string,
@@ -36,7 +38,7 @@ export class OAuthService {
     return { url: `${this.rootUrl}?${params.toString()}` };
   }
 
-  async handleGoogleLogin(code: string, req: Request) {
+  async handleGoogleLogin(code: string, req: Request, res: Response): Promise<Token> {
     const { access_token } = (await this.fetchAccessToken(code)) as { access_token: string };
     const userInfo = await this.fetchUserInfo(access_token);
 
@@ -44,27 +46,35 @@ export class OAuthService {
     const dbUserOAuth = await this.userOAuthRepository.findByProviderId(userInfo.sub);
     if (dbUserOAuth) {
       const { userId, email } = dbUserOAuth;
-      const token = this.tokenService.generateToken({ sub: userId, email });
+      const accessToken = this.tokenService.generateToken({ sub: userId, email });
       const refreshToken = this.tokenService.generateRefreshToken({ sub: userId });
 
       await this.createSuccessHistory(userId, req);
-      return { token, refreshToken };
+      cookieUtil.setCookie(
+        res,
+        { key: 'refreshToken', value: refreshToken },
+        { maxAge: this.config.get('JWT_REFRESH_EXPIRES_IN')! },
+      );
+      return { accessToken };
     } else {
       // 일반 계정 가입 여부 확인
       const dbUser = await this.userAuthRepository.findByEmail(userInfo.email);
       if (dbUser) {
-        return {
-          message: '이미 가입된 이메일입니다.',
-        };
+        throw new ConflictException();
       } else {
         const dbUserOAuth = await this.tx.signUpGoogle(userInfo);
 
         const { userId, email } = dbUserOAuth;
-        const token = this.tokenService.generateToken({ sub: userId, email });
+        const accessToken = this.tokenService.generateToken({ sub: userId, email });
         const refreshToken = this.tokenService.generateRefreshToken({ sub: userId });
 
         await this.createSuccessHistory(userId, req);
-        return { token, refreshToken };
+        cookieUtil.setCookie(
+          res,
+          { key: 'refreshToken', value: refreshToken },
+          { maxAge: this.config.get('JWT_REFRESH_EXPIRES_IN')! },
+        );
+        return { accessToken };
       }
     }
   }
@@ -77,7 +87,7 @@ export class OAuthService {
     });
   }
 
-  private async fetchAccessToken(code: string) {
+  private async fetchAccessToken(code: string): Promise<{ access_token: string }> {
     const params = new URLSearchParams();
     params.set('client_id', this.config.get('GOOGLE_CLIENT_ID')!);
     params.set('client_secret', this.config.get('GOOGLE_CLIENT_SECRET')!);

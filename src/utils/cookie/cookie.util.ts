@@ -20,7 +20,7 @@ export const cookieUtil = {
 
   getCookie(req: Request, key: Cookie['key']): string {
     const cookie = (req.cookies as Record<string, string>)[key];
-    expect(cookie != null).elseThrow(new UnauthorizedException(`[ ${key} ] 쿠키를 찾을 수 없습니다.`));
+    expect(cookie != null).elseThrow(new UnauthorizedException());
 
     return cookie;
   },

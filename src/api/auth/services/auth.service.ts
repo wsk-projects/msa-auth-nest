@@ -5,6 +5,8 @@ import { cookieUtil } from 'src/utils/cookie/cookie.util';
 import { LoginService } from './usecases/login.service';
 import { SignupService } from './usecases/signup.service';
 import { TokenService } from './domain/token.service';
+import { Token } from 'src/common/types/token.interface';
+import { LoginHistory } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -15,17 +17,16 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async signup(email: string, password: string) {
-    const dbUserAuth = await this.userAuthService.signup(email, password);
-    return { id: dbUserAuth.id, email: dbUserAuth.email };
+  async signup(email: string, password: string): Promise<void> {
+    await this.userAuthService.signup(email, password);
   }
 
-  async checkEmailExists(email: string) {
+  async checkEmailExists(email: string): Promise<{ exists: boolean }> {
     const dbUserAuth = await this.userAuthService.findByEmail(email);
     return { exists: !!dbUserAuth };
   }
 
-  async login(email: string, password: string, req: Request, res: Response) {
+  async login(email: string, password: string, req: Request, res: Response): Promise<Token> {
     const { userId: dbUserId, email: dbEmail } = await this.loginService.attemptLogin(email, password, req);
 
     const accessToken = this.tokenService.generateToken({ sub: dbUserId, email: dbEmail });
@@ -39,12 +40,12 @@ export class AuthService {
     return { accessToken };
   }
 
-  async logout(refreshToken: string, res: Response) {
+  async logout(refreshToken: string, res: Response): Promise<void> {
     cookieUtil.deleteCookie(res, 'refreshToken');
     await this.tokenService.blacklistToken(refreshToken);
   }
 
-  async refresh(refreshToken: string, res: Response) {
+  async refresh(refreshToken: string, res: Response): Promise<Token> {
     const payload = await this.tokenService.verify(refreshToken);
     const userAuth = await this.userAuthService.findById(payload.sub);
     if (!userAuth) throw new UnauthorizedException();
@@ -61,7 +62,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async getLoginHistory(userId: number) {
+  async getLoginHistory(userId: number): Promise<LoginHistory[]> {
     return await this.loginService.getHistory(userId);
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginProvider } from '@prisma/client';
+import { LoginHistory, LoginProvider, UserAuth } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { LoginHistoryRepository } from 'src/db/repositories/login-history.repository';
@@ -13,7 +13,7 @@ export class LoginService {
     private readonly loginHistoryRepository: LoginHistoryRepository,
   ) {}
 
-  async attemptLogin(email: string, password: string, req: Request) {
+  async attemptLogin(email: string, password: string, req: Request): Promise<UserAuth> {
     const dbUserAuth = await this.userAuthRepository.findByEmail(email);
     if (!dbUserAuth) throw new UnauthorizedException();
 
@@ -40,7 +40,7 @@ export class LoginService {
     });
   }
 
-  async getHistory(userId: number) {
+  async getHistory(userId: number): Promise<LoginHistory[]> {
     return await this.loginHistoryRepository.findManyByUserId(userId);
   }
 }
