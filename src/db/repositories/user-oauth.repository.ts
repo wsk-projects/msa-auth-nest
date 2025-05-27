@@ -20,14 +20,6 @@ export class UserOAuthRepository {
     });
   }
 
-  async findByEmail(email: string): Promise<UserOAuth | null> {
-    return await this.prisma.client.userOAuth.findFirst({
-      where: {
-        email,
-      },
-    });
-  }
-
   async findBy(where: Prisma.UserOAuthWhereUniqueInput): Promise<UserOAuth | null> {
     return await this.prisma.client.userOAuth.findUnique({
       where,

@@ -15,15 +15,10 @@ export class SignupService {
   async checkEmailExists(email: string): Promise<{ exists: boolean }> {
     const userAuth = await this.userAuthRepository.findByEmail(email);
     if (userAuth) return { exists: true };
-    const userOAuth = await this.userOAuthRepository.findByEmail(email);
-    if (userOAuth) return { exists: true };
     return { exists: false };
   }
 
   async signup(email: string, password: string): Promise<void> {
-    if (await this.userOAuthRepository.findByEmail(email)) {
-      throw new ConflictException();
-    }
     await this.tx.signup(email, password);
   }
 

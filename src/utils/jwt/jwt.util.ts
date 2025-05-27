@@ -10,14 +10,7 @@ const JWT_REFRESH_EXPIRES_IN_THRESHOLD = process.env.JWT_REFRESH_EXPIRES_IN_THRE
 
 export const jwtUtil = {
   generateAccessToken(payload: AccessPayload): string {
-    const token = jwt.sign(
-      {
-        sub: payload.sub,
-        email: payload.email,
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN },
-    );
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
     if (process.env.NODE_ENV === 'development') {
       const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
@@ -28,13 +21,7 @@ export const jwtUtil = {
   },
 
   generateRefreshToken(payload: RefreshPayload): string {
-    const token = jwt.sign(
-      {
-        sub: payload.sub,
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_REFRESH_EXPIRES_IN },
-    );
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
 
     if (process.env.NODE_ENV === 'development') {
       const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
@@ -47,7 +34,7 @@ export const jwtUtil = {
   updateRefreshToken(token: string): string {
     if (jwtUtil.shouldRefreshToken(token)) {
       const payload = jwt.verify(token, JWT_SECRET) as unknown as RefreshPayload;
-      return jwtUtil.generateRefreshToken({ sub: payload.sub });
+      return jwtUtil.generateRefreshToken(payload);
     }
     return token;
   },

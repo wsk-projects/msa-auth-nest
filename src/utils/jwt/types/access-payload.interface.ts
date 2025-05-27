@@ -1,5 +1,3 @@
 import { JwtPayload } from './jwt-payload.interface';
 
-export interface AccessPayload extends JwtPayload {
-  email: string;
-}
+export interface AccessPayload extends JwtPayload {}

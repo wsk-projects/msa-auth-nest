@@ -30,4 +30,24 @@ export class OAuthController {
     const accessToken = await this.oauthService.handleGoogleLogin(code, req, res);
     return responseUtil.success(accessToken);
   }
+
+  @ApiOperation({ summary: '카카오 로그인' })
+  @ApiResponse({ status: 200 })
+  @Get('kakao/login')
+  kakaoLogin(): ApiResult<{ url: string }> {
+    const url = this.oauthService.getKakaoLoginUrl();
+    return responseUtil.success(url);
+  }
+
+  @ApiOperation({ summary: '카카오 로그인 콜백' })
+  @ApiResponse({ status: 200 })
+  @Get('kakao/callback')
+  async kakaoCallback(
+    @Query('code') code: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResult<Token>> {
+    const accessToken = await this.oauthService.handleKakaoLogin(code, req, res);
+    return responseUtil.success(accessToken);
+  }
 }

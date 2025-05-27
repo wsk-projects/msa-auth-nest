@@ -37,7 +37,6 @@ model UserOAuth {
   userId     Int           @map("user_id")
   provider   OAuthProvider
   providerId String        @unique @map("provider_id")
-  email      String        @map("provider_email")
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 

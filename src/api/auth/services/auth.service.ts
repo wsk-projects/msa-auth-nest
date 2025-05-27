@@ -26,9 +26,9 @@ export class AuthService {
   }
 
   async login(email: string, password: string, req: Request, res: Response): Promise<Token> {
-    const { userId: dbUserId, email: dbEmail } = await this.loginService.attemptLogin(email, password, req);
+    const { userId: dbUserId } = await this.loginService.attemptLogin(email, password, req);
 
-    const accessToken = this.tokenService.generateToken({ sub: dbUserId, email: dbEmail });
+    const accessToken = this.tokenService.generateToken({ sub: dbUserId });
     const refreshToken = this.tokenService.generateRefreshToken({ sub: dbUserId });
 
     cookieUtil.setCookie(
@@ -49,7 +49,7 @@ export class AuthService {
     const userAuth = await this.userAuthService.findById(payload.sub);
     if (!userAuth) throw new UnauthorizedException();
 
-    const accessToken = this.tokenService.generateToken({ sub: userAuth.id, email: userAuth.email });
+    const accessToken = this.tokenService.generateToken({ sub: userAuth.id });
     const newRefreshToken = this.tokenService.updateRefreshToken(refreshToken);
 
     cookieUtil.setCookie(
